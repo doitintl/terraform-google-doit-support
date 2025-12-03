@@ -1,0 +1,15 @@
+# GCP Project Configuration
+# The ID of the GCP project where you want to grant temporary access
+# Example: "my-project-123456" or "production-project"
+project_id = "my-gcp-project-id"
+
+# Google Group Configuration
+# The email address of the Google Group that will receive access
+# This group will be granted viewer, geminicloudassist.user, and geminicloudassist.investigationUser roles
+# Example: "gemini-team@example.com" or "cloud-assist-users@mycompany.com"
+group_id = "gemini-access@example.com"
+
+# API Management Configuration (Optional)
+# Controls whether the Gemini Cloud Assist API is disabled when Terraform destroys the resources
+# Set to true (default) to disable the API on destroy, or false to keep it enabled
+# disable_on_destroy = true
