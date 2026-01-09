@@ -67,7 +67,7 @@ The group already exists and is managed by DoiT support.
 ### API Enablement Behavior
 
 - The module enables the `geminicloudassist.googleapis.com` API on the target project
-- By default (`disable_on_destroy = true`), the API will be disabled when you run `terraform destroy`
+- By default (`disable_on_destroy = false`), the API will remain enabled when you run `terraform destroy`
 - If you set `disable_on_destroy = false`, the API will remain enabled even after destroying the Terraform resources
 - If the API is already enabled in your project, Terraform will import it into the state without making changes
 - IAM grants are created only after the API is enabled, reducing transient failures during apply
