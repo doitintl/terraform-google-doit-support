@@ -42,7 +42,7 @@ If you are satisfied with the changes, run `terraform apply` to apply the change
 
 When you are done, run `terraform destroy` to remove the resources.
 
-Please note that the module will disable the Gemini Cloud Assist API when the resource is destroyed. If you want to keep the API enabled after resource destruction, set `disable_on_destroy = false`.
+Please note that the module will not disable the Gemini Cloud Assist API when the resource is destroyed. If you want to disable the API after resource destruction, set `disable_on_destroy = true`.
 
 When the ticket is closed, the Google Group will automatically be deleted on our side as well.
 
