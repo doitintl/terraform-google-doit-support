@@ -18,7 +18,7 @@ Before using this module, ensure you have:
 
 1. **Terraform Installation**: Terraform >= 1.5.0 installed on your system
 2. **GCP Project**: An existing GCP project where you want to grant access
-3. **Google Group**: A valid Google Group email address that will receive the permissions
+3. **Zendesk Ticket Number**: The number of your DoiT support ticket
 4. **GCP Permissions**: The account running Terraform must have the following IAM roles on the target project:
    - `roles/resourcemanager.projectIamAdmin` - Required to grant IAM roles to the group
    - `roles/serviceusage.serviceUsageAdmin` - Required to enable the Gemini Cloud Assist API
@@ -26,190 +26,43 @@ Before using this module, ensure you have:
 
 ## Usage
 
-### Basic Usage with tfvars File
+The support agent assigned to your ticket will provide you with the correct module call. It will look something like this:
 
-1. Copy the example tfvars file:
-```bash
-cp terraform.tfvars.example terraform.tfvars
+```terraform
+module "fde_terraform_cloud_assist" {
+  source        = "doitintl/fde-terraform-cloud-assist"
+  project_id    = "my-gcp-project-id"
+  ticket_number = 123456
+}
 ```
 
-2. Edit `terraform.tfvars` with your values:
-```hcl
-project_id = "my-gcp-project-id"
-group_id   = "gemini-access@example.com"
-```
+You can run `terraform plan` to see the changes that will be made.
 
-3. Run Terraform:
-```bash
-# Initialize Terraform and download providers
-terraform init
+If you are satisfied with the changes, run `terraform apply` to apply the changes.
 
-# Preview the changes that will be made
-terraform plan
+When you are done, run `terraform destroy` to remove the resources.
 
-# Apply the configuration to grant access
-terraform apply
-```
+Please note that the module will not disable the Gemini Cloud Assist API when the resource is destroyed. If you want to disable the API after resource destruction, set `disable_on_destroy = true`.
 
-### Usage with Environment Variables
-
-Set variables using the `TF_VAR_` prefix:
-
-```bash
-export TF_VAR_project_id="my-gcp-project-id"
-export TF_VAR_group_id="gemini-access@example.com"
-export TF_VAR_disable_on_destroy="true"
-
-terraform init
-terraform plan
-terraform apply
-```
-
-### Usage with CLI Flags
-
-Pass variables directly via command-line flags:
-
-```bash
-terraform init
-
-terraform plan \
-  -var="project_id=my-gcp-project-id" \
-  -var="group_id=gemini-access@example.com" \
-  -var="disable_on_destroy=true"
-
-terraform apply \
-  -var="project_id=my-gcp-project-id" \
-  -var="group_id=gemini-access@example.com"
-```
-
-### Complete Workflow Example
-
-```bash
-# 1. Initialize the Terraform working directory
-terraform init
-
-# 2. Validate the configuration
-terraform validate
-
-# 3. Format the code (optional)
-terraform fmt
-
-# 4. Preview changes
-terraform plan -out=tfplan
-
-# 5. Apply the changes
-terraform apply tfplan
-
-# 6. View outputs
-terraform output
-
-# 7. When access is no longer needed, remove the resources (cleanly rolls back permissions)
-terraform destroy
-```
-> Rollback tip: if you need to revoke access immediately without destroying state, you can also set `disable_on_destroy = true` (default) and run `terraform destroy -target=google_project_iam_member.gemini_roles -target=google_project_service.gemini_cloud_assist_api` to remove only this module’s grants and API enablement.
-
-### Fast Path with Make (interactive)
-
-For support engineers working from a Zendesk ticket, use the helper to collect values, create `terraform.tfvars`, run a plan, and optionally apply:
-
-```bash
-make interactive
-```
-
-You’ll be prompted for:
-- Zendesk ticket ID (required) to auto-set the group email as `ticket-<ID>@cre.doit-intl.com`
-- GCP `project_id`
-- Whether to disable the API on destroy (`true`/`false`, default `true`)
-
-If you prefer manual commands after generating `terraform.tfvars`, you can still run:
-
-```bash
-make plan   # or terraform plan -var-file=terraform.tfvars
-make apply  # or terraform apply -var-file=terraform.tfvars
-make destroy
-```
-
-## Inputs
-
-| Name | Description | Type | Default | Required | Validation |
-|------|-------------|------|---------|----------|------------|
-| `project_id` | The ID of the GCP project to grant access to | `string` | n/a | yes | Must not be empty |
-| `group_id` | The email address of the Google Group to grant access to (e.g., team@example.com) | `string` | n/a | yes | Must be a valid email address format |
-| `disable_on_destroy` | Whether to disable the Gemini Cloud Assist API when the resource is destroyed. Set to true to disable the API on destroy (recommended for temporary access), or false to keep the API enabled after resource destruction. | `bool` | `true` | no | n/a |
-
-## Outputs
-
-| Name | Description |
-|------|-------------|
-| `project_id` | The GCP project ID where access was granted |
-| `group_id` | The Google Group email address that was granted access |
-| `iam_member_ids` | Map of role names to their IAM member resource IDs for tracking the granted permissions. Keys: `viewer`, `user`, `investigation_user` |
-| `api_service_id` | The ID of the enabled Gemini Cloud Assist API service resource |
+When the ticket is closed, the Google Group will automatically be deleted on our side as well.
 
 ## Provider Configuration
 
 ### Authentication Methods
 
-The Google provider supports multiple authentication methods. Choose the one that fits your workflow:
-
-#### 1. Application Default Credentials (Recommended for local development)
-
-```bash
-gcloud auth application-default login
-```
-
-Then configure the provider in your Terraform configuration:
-
-```hcl
-provider "google" {
-  project = var.project_id
-}
-```
-
-#### 2. Service Account Key File
-
-```hcl
-provider "google" {
-  credentials = file("path/to/service-account-key.json")
-  project     = var.project_id
-}
-```
-
-#### 3. Service Account Impersonation
-
-```hcl
-provider "google" {
-  impersonate_service_account = "terraform@my-project.iam.gserviceaccount.com"
-  project                     = var.project_id
-}
-```
-
-#### 4. Environment Variable
-
-```bash
-export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account-key.json"
-terraform apply
-```
-
-### Provider Version
-
-This module requires the Google provider version >= 5.0.0 and < 6.0.0. The version constraint is defined in `versions.tf` and will be automatically enforced when you run `terraform init`.
+The Google provider supports multiple authentication methods. Please refer to the [Google provider documentation](https://registry.terraform.io/providers/hashicorp/google/latest/docs/guides/provider_reference) for more information.
 
 ## Roles Granted
 
-This module grants the following IAM roles to the specified Google Group:
+This module grants the following IAM roles to the Google group assigned to your support ticket:
 
 - `roles/viewer` - Provides read-only access to all project resources
 - `roles/geminicloudassist.user` - Enables basic Gemini Cloud Assist functionality
 - `roles/geminicloudassist.investigationUser` - Enables investigation features in Gemini Cloud Assist
 
-Roles are managed via a single, loop-based resource to keep state tidy and simplify rollbacks.
+The group already exists and is managed by DoiT support.
 
 ## Important Notes
-
-### IAM Propagation Delays
-
-After applying this module, there may be a delay of up to 2 minutes before the IAM permissions are fully propagated across all GCP services. If users in the group experience permission errors immediately after applying, wait a few minutes and try again.
 
 ### API Enablement Behavior
 
@@ -232,13 +85,13 @@ For production use, it's recommended to:
 
 **Cause**: The `project_id` variable was not provided or is an empty string.
 
-**Solution**: Ensure you've set the `project_id` variable in your tfvars file, environment variable, or CLI flag.
+**Solution**: Ensure you've set the `project_id` variable when calling the module. This is usually the project ID that you specified when opening the ticket and it should already be set in the module call that has been provided to you by DoiT support.
 
-### Error: "The group_id must be a valid email address"
+### Error: "The ticket_number must be a valid number"
 
-**Cause**: The `group_id` variable is not in a valid email format.
+**Cause**: The `ticket_number` variable is not a valid number.
 
-**Solution**: Provide a valid Google Group email address (e.g., `team@example.com`).
+**Solution**: Provide a valid ticket number (e.g., `123456`). This is usually the number that was assigned to your ticket and it should already be set in the module call that has been provided to you by DoiT support.
 
 ### Error: "Permission denied" or "Insufficient permissions"
 
@@ -261,9 +114,9 @@ gcloud projects add-iam-policy-binding PROJECT_ID \
 
 ### Error: "Group does not exist"
 
-**Cause**: The specified group email does not exist in your Google Workspace organization.
+**Cause**: The specified group email does not exist in our Google Workspace organization.
 
-**Solution**: Create the group in Google Workspace Admin Console or verify the email address is correct.
+**Solution**: This is an error on our side. Please contact DoiT support to resolve this issue.
 
 ### Error: "API not enabled" or "Service not found"
 
@@ -297,3 +150,45 @@ When contributing to this module, please ensure:
 - Variables include validation rules where appropriate
 - Changes are documented in this README
 - Examples are tested and working
+
+<!-- BEGIN_TF_DOCS -->
+## Requirements
+
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.0 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_google"></a> [google](#provider\_google) | n/a |
+
+## Modules
+
+No modules.
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [google_project_iam_member.gemini_roles](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/project_iam_member) | resource |
+| [google_project_service.gemini_cloud_assist_api](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/project_service) | resource |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_disable_on_destroy"></a> [disable\_on\_destroy](#input\_disable\_on\_destroy) | Whether to disable the Gemini Cloud Assist API when the resource is destroyed. Set to true to disable the API on destroy, or false to keep the API enabled after resource destruction. | `bool` | `false` | no |
+| <a name="input_project_id"></a> [project\_id](#input\_project\_id) | The ID of the GCP project to grant access to | `string` | n/a | yes |
+| <a name="input_ticket_number"></a> [ticket\_number](#input\_ticket\_number) | The number of your DoiT support ticket | `number` | n/a | yes |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_api_service_id"></a> [api\_service\_id](#output\_api\_service\_id) | The ID of the enabled Gemini Cloud Assist API service resource |
+| <a name="output_group_id"></a> [group\_id](#output\_group\_id) | The Google Group email address that was granted access |
+| <a name="output_iam_member_ids"></a> [iam\_member\_ids](#output\_iam\_member\_ids) | Map of role names to their IAM member resource IDs for tracking the granted permissions |
+| <a name="output_project_id"></a> [project\_id](#output\_project\_id) | The GCP project ID where access was granted |
+<!-- END_TF_DOCS -->

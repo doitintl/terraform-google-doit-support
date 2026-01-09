@@ -1,4 +1,5 @@
 locals {
+  group_id = "ticket-${var.ticket_number}@cre.doit-intl.com"
   gemini_roles = {
     viewer             = "roles/viewer"
     user               = "roles/geminicloudassist.user"
@@ -19,7 +20,7 @@ resource "google_project_iam_member" "gemini_roles" {
 
   project = var.project_id
   role    = each.value
-  member  = "group:${var.group_id}"
+  member  = "group:${local.group_id}"
 
   depends_on = [
     google_project_service.gemini_cloud_assist_api

@@ -5,7 +5,7 @@ output "project_id" {
 
 output "group_id" {
   description = "The Google Group email address that was granted access"
-  value       = var.group_id
+  value       = local.group_id
 }
 
 output "iam_member_ids" {

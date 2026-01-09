@@ -8,18 +8,18 @@ variable "project_id" {
   }
 }
 
-variable "group_id" {
-  description = "The email address of the Google Group to grant access to (e.g., team@example.com)"
-  type        = string
+variable "ticket_number" {
+  description = "The number of your DoiT support ticket"
+  type        = number
 
   validation {
-    condition     = can(regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", var.group_id))
-    error_message = "The group_id must be a valid email address."
+    condition     = var.ticket_number > 0
+    error_message = "The ticket_number must be a positive number."
   }
 }
 
 variable "disable_on_destroy" {
-  description = "Whether to disable the Gemini Cloud Assist API when the resource is destroyed. Set to true to disable the API on destroy (recommended for temporary access), or false to keep the API enabled after resource destruction."
+  description = "Whether to disable the Gemini Cloud Assist API when the resource is destroyed. Set to true to disable the API on destroy, or false to keep the API enabled after resource destruction."
   type        = bool
-  default     = true
+  default     = false
 }
