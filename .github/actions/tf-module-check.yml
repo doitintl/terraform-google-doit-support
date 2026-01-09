@@ -1,0 +1,24 @@
+name: "Terraform Module Check"
+description: "Run Terraform formatting and validation for the module and examples"
+inputs:
+  working-directory:
+    description: "Directory to run Terraform commands in"
+    required: false
+    default: "."
+runs:
+  using: "composite"
+  steps:
+    - name: Terraform fmt (check)
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: terraform fmt -check -recursive
+
+    - name: Terraform init (no backend)
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: terraform init -backend=false -input=false
+
+    - name: Terraform validate
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: terraform validate -no-color

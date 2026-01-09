@@ -29,8 +29,8 @@ Before using this module, ensure you have:
 The support agent assigned to your ticket will provide you with the correct module call. It will look something like this:
 
 ```terraform
-module "fde_terraform_cloud_assist" {
-  source        = "doitintl/fde-terraform-cloud-assist"
+module "terraform_google_doit_support" {
+  source        = "doitintl/terraform-google-doit-support"
   project_id    = "my-gcp-project-id"
   ticket_number = 123456
 }
