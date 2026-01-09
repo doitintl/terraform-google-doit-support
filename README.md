@@ -91,7 +91,7 @@ For production use, it's recommended to:
 
 **Cause**: The `ticket_number` variable is not a valid number.
 
-**Solution**: Provide a valid ticket number (e.g., `123456`). This is usually the the number that was assigned to your ticket and it should already be set in the module call that has been provided to you by DoiT support.
+**Solution**: Provide a valid ticket number (e.g., `123456`). This is usually the number that was assigned to your ticket and it should already be set in the module call that has been provided to you by DoiT support.
 
 ### Error: "Permission denied" or "Insufficient permissions"
 
